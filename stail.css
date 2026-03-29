@@ -19,8 +19,6 @@ body {
   font-family: "Poppins";
   cursor: url('Cursor.png'), auto;
 }
-
-
 * {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
@@ -337,7 +335,7 @@ h3.my-profession {
     }
 }
 
-.typing {
+.typing-en, .typing-id {
   color: var(--skin-color);
 }
 .home-info p {

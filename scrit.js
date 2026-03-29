@@ -1,9 +1,16 @@
-var typed = new Typed(".typing", {
-    strings: ["", "Graphic Designer", "UI / UX Designer", "Web Developer", "Video Editor", "YouTuber", "Software Developer"],
+var typed = new Typed(".typing-en", {
+    strings: ["", "Marketing & Sales Specialist", "Business Consultant", "Web Tools Developer"],
     typeSpeed: 100,
     BackSpeed: 60,
     loop: true
 })
+var typedID = new Typed(".typing-id", {
+    strings: ["", "Spesialis Marketing & Sales", "Konsultan Bisnis", "Developer Tools Web"],
+    typeSpeed: 100,
+    backSpeed: 60,
+    loop: true
+})
+
 /* ============================== Aside ============================ */
 const nav = document.querySelector(".nav"),
     navList = nav.querySelectorAll("li"),

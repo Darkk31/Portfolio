@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peta Pelanggan</title>
+    <!-- CSS Leaflet -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+    <!-- CSS Cluster -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+    <!-- CSS Fullscreen -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/1.6.0/Control.FullScreen.css" />
+    
+    <!-- Add this after your existing style tag -->
+<style id="darkModeStyles">
+    /* Dark Mode */
+    body.dark-mode {
+        background: #1a1a1a;
+    }
+
+    .dark-mode .search-container,
+    .dark-mode .toggle-button,
+    .dark-mode .toggle-menu,
+    .dark-mode .legend,
+    .dark-mode .info-box div,
+    .dark-mode .info-box{
+        background: #2c3e50;
+        color: #fff;
+    }
+
+    .dark-mode .search-container input,
+    .dark-mode .search-container select {
+        background: #34495e;
+        color: #fff;
+        border-color: #456789;
+    }
+
+    .dark-mode .search-container input::placeholder {
+        color: #bdc3c7;
+    }
+
+    .dark-mode .autocomplete-items {
+        background: #2c3e50;
+        border-color: #456789;
+    }
+
+
+    .dark-mode .autocomplete-items div {
+        color: #fff;
+        border-bottom-color: #456789;
+    }
+
+    .dark-mode .autocomplete-items div:hover {
+        background: #34495e;
+    }
+
+    .dark-mode .area-header {
+        background: #34495e;
+        color: #fff;
+    }
+
+    .dark-mode .area-header:hover {
+        background: #456789;
+    }
+
+    .dark-mode .customer-item:hover {
+        background: #34495e;
+    }
+
+    /* Theme Toggle Button */
+    .theme-toggle {
+        position: absolute;
+        top: 20px;
+        left: 30px;
+        z-index: 1000;
+        background: white;
+        padding: 10px 15px;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+        font-size: 14px;
+    }
+
+    .dark-mode .theme-toggle {
+        background: #2c3e50;
+        color: #fff;
+    }
+
+    @media (max-width: 768px) {
+        .theme-toggle {
+            top: 10px;
+            left: 45px;
+        }
+    }
+    </style>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* Header Style */
+        .header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Search Container */
+        .search-container {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 300px;
+            transition: all 0.3s ease;
+        }
+        #showAllBtn {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #3498db;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.2s ease;
+    }
+
+    #showAllBtn:hover {
+        background: #2980b9;
+    }
+
+    /* Sesuaikan padding input untuk tombol */
+    .search-container input {
+        padding-right: 120px;
+    }
+
+        .search-wrapper {
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .search-container input,
+        .search-container select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .search-container input:focus,
+        .search-container select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52,152,219,0.2);
+            background: white;
+        }
+
+        /* Autocomplete */
+        .autocomplete-items {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 1001;
+            display: none;
+        }
+
+        .autocomplete-items div {
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .autocomplete-items div:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-items div:hover {
+            background-color: #f8f9fa;
+            padding-left: 15px;
+        }
+        .theme-toggle {
+    position: absolute;
+    top: 10px;
+    left: 44px;
+    z-index: 1000;
+        }
+
+        /* Toggle Menu */
+        .toggle-button {
+            position: absolute;
+            top: 20px;
+            right: 330px;
+            z-index: 1000;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #2c3e50;
+        }
+
+        .toggle-button:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+        }
+
+        .toggle-menu {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 300px;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+            display: none;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-menu h3 {
+            margin: 0 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            color: #2c3e50;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .area-group {
+            margin-bottom: 15px;
+        }
+
+        .area-header {
+            background: #f8f9fa;
+            padding: 12px 15px;
+            cursor: pointer;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .area-header:hover {
+            background: #e9ecef;
+        }
+
+        .area-content {
+            padding: 5px 15px;
+            display: none;
+        }
+
+        .area-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .customer-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #666;
+            border-radius: 6px;
+            margin: 2px 0;
+        }
+
+        .customer-item:hover {
+            color: #3498db;
+            background: #f8f9fa;
+            padding-left: 20px;
+        }
+
+        /* Info Box */
+        .info-box {
+            position: absolute;
+            bottom: 0;
+            left: 5px;
+            z-index: 1000;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            line-height: 1.8;
+        }
+
+        .info-box div {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 5px 0;
+            color: #2c3e50;
+        }
+
+        .info-box span {
+            font-weight: 600;
+            color: #3498db;
+            margin-left: 15px;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .search-container {
+                top: 50px;
+                right: 0;
+                width: auto;
+            }
+
+            .toggle-button {
+                top: 15px;
+                right: 15px;
+            }
+
+            .toggle-menu {
+                top: 50px;
+                right: 0;
+                width: auto;
+            }
+            .info-box {
+                bottom: 0;
+                left: 0;
+                width: 20Spx;
+                font-size: 13px;
+            }
+        }
+
+        /* Popup Styles */
+        .leaflet-popup-content-wrapper {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 0;
+        }
+
+        .leaflet-popup-content {
+            margin: 0;
+            padding: 15px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-width: 250px;
+        }
+
+        .leaflet-popup-content b {
+            display: block;
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+        }
+
+        .leaflet-popup-content br {
+            display: block;
+            margin: 8px 0;
+            content: "";
+        }
+
+        .leaflet-popup-tip {
+            background: #fff;
+        }
+
+        .leaflet-container a.leaflet-popup-close-button {
+            color: #666;
+            padding: 8px;
+            width: 28px;
+            height: 28px;
+        }
+
+        /* Dark Mode Popup Styles */
+        .dark-mode .leaflet-popup-content-wrapper {
+            background: #2c3e50;
+            color: #fff;
+        }
+
+        .dark-mode .leaflet-popup-tip {
+            background: #2c3e50;
+        }
+
+        .dark-mode .leaflet-popup-content b {
+            color: #fff;
+            border-bottom-color: #456789;
+        }
+
+        .dark-mode .leaflet-container a.leaflet-popup-close-button {
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+<button class="theme-toggle" onclick="toggleTheme()">
+    <span id="theme-icon">🌙</span>
+</button>
+
+    <!-- Search & Filter -->
+    <div class="search-container"><select id="dayFilter">
+        <option value="all">Semua Hari</option>
+        <option value="Senin">Senin</option>
+        <option value="Selasa">Selasa</option>
+        <!-- Tambahkan opsi lainnya -->
+    </select>
+    
+    <select id="regionFilter">
+        <option value="all">Semua Wilayah</option>
+        <option value="Cimahi">Cimahi</option>
+        <option value="Subang">Subang</option>
+        <!-- Tambahkan opsi lainnya -->
+    </select>
+
+        <div class="search-wrapper">
+            <input type="text" id="searchInput" placeholder="Cari pelanggan...">
+            <button id="showAllBtn">^</button>
+            <div id="autocompleteList" class="autocomplete-items"></div>
+        </div>
+        <select id="statusFilter">
+            <option value="all">Semua Status</option>
+            <option value="active">Aktif</option>
+            <option value="inactive">Tidak Aktif</option>
+        </select>
+    </div>
+
+    <!-- Toggle Menu -->
+    <button class="toggle-button" onclick="toggleMenu()">
+        <i>☰</i> Menu Pelanggan
+    </button>
+    <div class="toggle-menu" id="customerMenu">
+        <h3>Daftar Pelanggan</h3>
+        <div id="areaList"></div>
+    </div>
+
+    <!-- Info Box -->
+    <div class="info-box">
+        <div>Total Pelanggan: <span id="totalCustomers">0</span></div>
+        <div>Pelanggan Aktif: <span id="activeCustomers">0</span></div>
+        <div>Pelanggan Tidak Aktif: <span id="inactiveCustomers">0</span></div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/1.6.0/Control.FullScreen.js"></script>
+    
+    <script>
+        // Inisialisasi peta
+        const map = L.map('map').setView([-6.6776664, 107.6828854], 13); // Inisialisasi peta
+
+// Menambahkan tiles untuk peta
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+}).addTo(map);
+
+// Menambahkan marker untuk setiap customer
+
+
+        // Data pelanggan
+        const customerData = [
+{
+        lat: -6.4173,
+        lng: 107.6851,
+        desc: `<b>Purwadadi</b><br>
+               Nomor: <br>
+               Tempo: <br>
+               Status: Aktif<br>
+               Limit:<br>
+               Penggunaan:<br>
+               Keterangan: Pembayaran kadang telat`,
+        hari: 'senin',
+        wilayah: 'subang'
+    },
+    {
+        lat: -6.4828,
+        lng: 107.68949,
+        desc: `<b>  Purwadadi</b><br>
+               Nomor: <br>
+               Tempo: <br>
+               Status: Aktif<br>
+               Limit: <br>
+               Penggunaan: <br>
+               Keterangan: Pembayaran Tepat waktu`,
+        hari: 'senin',
+        wilayah: 'subang'
+    },
+    {
+        lat: -6.8794327, 
+        lng: 107.5183,
+        desc: `<b>Antri</b><br>
+               Nomor: <br>
+               Tempo: <br>
+               Status: Aktif<br>
+               Limit:<br>
+               Penggunaan: <br>
+               Keterangan: `,
+        hari: 'Selasa',
+        wilayah: 'Cimahi'
+    },
+    {
+        lat: -6.8331, 
+        lng: 107.59773,
+        desc: `<b>Antri</b><br>
+               Nomor: <br>
+               Tempo: <br>
+               Status: Aktif<br>
+               Limit:Rp. 36.000.000<br>
+               Penggunaan: <br>
+               Keterangan: `,
+        hari: 'Selasa',
+        wilayah: 'Cimahi'
+    },
+    {
+        lat: -6.86703, 
+        lng: 107.4,
+        desc: `<b>Gofur</b><br>
+               Nomor: <br>
+               Tempo: <br>
+               Status: Aktif<br>
+               Limit: <br>
+               Penggunaan: <br>
+               Keterangan: `,
+        hari: 'Selasa',
+        wilayah: 'Cimahi'
+    },
+    {
+        lat: -6.8661, 
+        lng: 107.5236,
+        desc: `<b> Gofur</b><br>
+               Nomor: <br>
+               Tempo:<br>
+               Status: Aktif<br>
+               Limit: <br>
+               Penggunaan:  <br>
+               Keterangan: `,
+        hari: 'Selasa',
+        wilayah: 'Cimahi'
+    },
+    {
+        lat: -7.0947,   
+        lng: 107.46997,
+        desc: `<b> Ciwidey </b><br>
+               Nomor: 08 <br>
+               Tempo: <br>
+               Status: Aktif<br>
+               Limit: <br>
+               Penggunaan:  <br>
+               Keterangan: `,
+        hari: 'Rabu',
+        wilayah: 'Ciwidey' 
+    },
+    {
+        lat: -7.0984,   
+        lng: 107.9976,
+        desc: `<b>  Ciwidey </b><br>
+               Nomor: 08 <br>
+               Tempo: <br>
+               Status: Aktif<br>
+               Limit: <br>
+               Penggunaan: <br>
+               Keterangan:`,
+        hari: 'Rabu',
+        wilayah: 'Ciwidey' 
+    },
+    {
+        lat: -7.10502,   
+        lng: 107.45821, 
+        desc: `<b> Ciwidey </b><br>
+               Nomor: 08 <br>
+               Tempo: <br>
+               Status: Aktif<br>
+               Limit: Rp.<br>
+               Penggunaan: Rp. 1.000.000 <br>
+               Keterangan: `,
+        hari: 'Rabu',
+        wilayah: 'Ciwidey' 
+    }
+    
+    // ... tambahkan data lainnya dengan format yang sama ...
+];
+
+
+// Tampilkan semua pelanggan dengan koordinat invalid
+
+
+        // Fungsi untuk membuat circle icon
+        function createCircleIcon(size, color) {
+            return new L.DivIcon({
+                className: `circle-icon ${color}`,
+                iconSize: [size, size],
+                iconAnchor: [size/2, size/2],
+                html: `<div style="background-color: ${color}; width: 100%; height: 100%; border-radius: 50%; border: 2px solid white; opacity: 0.7;"></div>`
+            });
+        }
+
+        // Inisialisasi cluster group
+        const markers = L.markerClusterGroup({
+            showCoverageOnHover: false,
+            spiderfyOnMaxZoom: true,
+            disableClusteringAtZoom: 16,
+            maxClusterRadius: 50
+        });
+
+        function renderCustomerMenu() {
+    
+document.getElementById('dayFilter').addEventListener('change', applyFilters);
+document.getElementById('regionFilter').addEventListener('change', applyFilters);
+
+function applyFilters() {
+    const selectedDay = document.getElementById('dayFilter').value;
+    const selectedRegion = document.getElementById('regionFilter').value;
+
+    markersList.forEach((marker, index) => {
+        const customer = customerData[index];
+        const matchesDay = selectedDay === 'all' || customer.hari === selectedDay;
+        const matchesRegion = selectedRegion === 'all' || customer.wilayah === selectedRegion;
+
+        if (matchesDay && matchesRegion) {
+            markers.addLayer(marker);
+        } else {
+            markers.removeLayer(marker);
+        }
+    });
+}
+
+        function groupCustomersByCriteria() {
+    const groups = {};
+
+    customerData.forEach(customer => {
+        // Gabungkan hari dan wilayah sebagai kunci grup
+        const key = `${customer.hari} - ${customer.wilayah}`;
+
+        if (!groups[key]) {
+            groups[key] = [];
+        }
+
+        groups[key].push(customer);
+    });
+
+    return groups;
+}
+
+const groups = groupCustomersByCriteria();
+    const areaList = document.getElementById('areaList');
+    areaList.innerHTML = '';
+
+    Object.keys(groups).sort().forEach(group => {
+        const groupData = groups[group];
+
+        const groupHeader = document.createElement('div');
+        groupHeader.className = 'area-header';
+        groupHeader.innerHTML = `${group} <span>(${groupData.length})</span>`;
+
+        const groupContent = document.createElement('div');
+        groupContent.className = 'area-content';
+
+        groupData.sort((a, b) => a.desc.localeCompare(b.desc)).forEach(customer => {
+            const customerItem = document.createElement('div');
+            customerItem.className = 'customer-item';
+            customerItem.textContent = customer.desc.match(/<b>(.*?)<\/b>/)[1]; // Ambil nama pelanggan
+            customerItem.onclick = () => {
+                map.setView([customer.lat, customer.lng], 16);
+                markersList.forEach(marker => {
+                    if (
+                        marker.getLatLng().lat === customer.lat &&
+                        marker.getLatLng().lng === customer.lng
+                    ) {
+                        marker.openPopup();
+                    }
+                });
+            };
+            groupContent.appendChild(customerItem);
+        });
+
+        groupHeader.onclick = () => {
+            const isActive = groupContent.classList.contains('active');
+            document.querySelectorAll('.area-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            if (!isActive) {
+                groupContent.classList.add('active');
+            }
+        };
+
+        areaList.appendChild(groupHeader);
+        areaList.appendChild(groupContent);
+    });
+}
+        // Dark Mode functionality
+function toggleTheme() {
+    const body = document.body;
+    const themeIcon = document.getElementById('theme-icon');
+    
+    if (body.classList.contains('dark-mode')) {
+        // Switch to Light Mode
+        body.classList.remove('dark-mode');
+        themeIcon.textContent = ' 🌙';
+        localStorage.setItem('theme', 'light');
+        
+        // Switch map tiles
+        map.eachLayer((layer) => {
+            if (layer instanceof L.TileLayer) {
+                map.removeLayer(layer);
+            }
+        });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+    } else {
+        // Switch to Dark Mode
+        body.classList.add('dark-mode');
+        themeIcon.textContent = '☀️';
+        localStorage.setItem('theme', 'dark');
+        
+        // Switch map tiles
+        map.eachLayer((layer) => {
+            if (layer instanceof L.TileLayer) {
+                map.removeLayer(layer);
+            }
+        });
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors, © CARTO'
+        }).addTo(map);
+    }
+}
+
+// Check saved theme preference
+document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        toggleTheme();
+    }
+});
+
+        const markersList = [];
+
+        // Buat marker untuk setiap pelanggan
+        customerData.forEach(customer => {
+            const isActive = !customer.desc.includes('Tidak Aktif');
+            const markerColor = isActive ? '#2ecc71' : '#e74c3c';
+            
+            const marker = L.marker([customer.lat, customer.lng], {
+                icon: createCircleIcon(18, markerColor)
+            }).bindPopup(customer.desc);
+            
+            markers.addLayer(marker);
+            markersList.push(marker);
+        });
+
+        map.addLayer(markers);
+
+        // Update informasi pelanggan
+        const active = customerData.filter(c => !c.desc.includes('Tidak Aktif')).length;
+        const inactive = customerData.filter(c => c.desc.includes('Tidak Aktif')).length;
+        
+        document.getElementById('totalCustomers').textContent = customerData.length;
+        document.getElementById('activeCustomers').textContent = active;
+        document.getElementById('inactiveCustomers').textContent = inactive;
+
+        // Fungsi untuk toggle menu
+        function toggleMenu() {
+            const menu = document.getElementById('customerMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Fungsi untuk mengelompokkan customer berdasarkan wilayah
+
+        // Render menu customer
+function groupCustomersByAreaAndDay() {
+    const areas = {};
+
+    customerData.forEach(customer => {
+        const area = customer.wilayah || "Wilayah Tidak Diketahui";
+        const day = customer.hari || "Hari Tidak Diketahui";
+
+        if (!areas[area]) {
+            areas[area] = {};
+        }
+        if (!areas[area][day]) {
+            areas[area][day] = [];
+        }
+
+        areas[area][day].push({
+            name: customer.desc.match(/<b>(.*?)<\/b>/)[1],
+            lat: customer.lat,
+            lng: customer.lng,
+            desc: customer.desc
+        });
+    });
+
+    const sortedAreas = Object.keys(areas)
+        .sort((a, b) => a.localeCompare(b))
+        .map(area => ({
+            area,
+            days: Object.keys(areas[area])
+                .sort((a, b) => a.localeCompare(b))
+                .map(day => ({
+                    day,
+                    customers: areas[area][day]
+                }))
+        }));
+
+    return sortedAreas;
+    }
+    function renderCustomerMenu() {
+    const groupedData = groupCustomersByAreaAndDay(); // Fungsi untuk mengelompokkan pelanggan
+    const areaList = document.getElementById('areaList'); // ID elemen untuk menampilkan Menu
+    if (!areaList) {
+        console.error('Element #areaList not found');
+    return;
+}
+
+    areaList.innerHTML = ''; // Reset isi elemen
+
+    groupedData.forEach(areaGroup => {
+        // Membuat elemen untuk setiap wilayah
+        const areaHeader = document.createElement('div');
+        areaHeader.className = 'area-header';
+        areaHeader.innerHTML = `${areaGroup.area} (${areaGroup.days.length})`;
+
+        const areaContent = document.createElement('div');
+        areaContent.className = 'area-content';
+
+        // Menambahkan hari dan daftar pelanggan
+        areaGroup.days.forEach(dayGroup => {
+            const dayHeader = document.createElement('div');
+            dayHeader.className = 'day-header';
+            dayHeader.innerHTML = `${dayGroup.day} (${dayGroup.customers.length})`;
+
+            const customerList = document.createElement('div');
+            customerList.className = 'customer-list';
+
+            // Menambahkan item pelanggan
+            dayGroup.customers.forEach(customer => {
+                const customerItem = document.createElement('div');
+                customerItem.className = 'customer-item';
+                customerItem.textContent = customer.name;
+
+                // Hapus marker dari peta sebelumnya jika ada
+                customerItem.onclick = () => {
+                    // Hanya memperbesar peta ke lokasi pelanggan tanpa menambah marker
+                    map.setView([customer.lat, customer.lng], 16);
+
+                    // Membuka popup untuk menampilkan detail pelanggan tanpa menambah marker lagi
+                    const popup = L.popup()
+                        .setLatLng([customer.lat, customer.lng])
+                        .setContent(customer.desc)
+                        .openOn(map);
+                };
+
+                customerList.appendChild(customerItem);
+            });
+
+            areaContent.appendChild(dayHeader);
+            areaContent.appendChild(customerList);
+        });
+
+        // Menambahkan klik untuk membuka/tutup daftar area
+        areaHeader.onclick = () => {
+            areaContent.classList.toggle('active');
+        };
+
+        areaList.appendChild(areaHeader);
+        areaList.appendChild(areaContent);
+    });
+}
+function renderCustomerMenu() {
+    const groupedData = groupCustomersByAreaAndDay(); // Fungsi untuk mengelompokkan pelanggan
+    const areaList = document.getElementById('areaList'); // ID elemen untuk menampilkan menu
+
+    if (!areaList) {
+        console.error('Element #areaList not found');
+        return;
+    }
+
+    areaList.innerHTML = ''; // Reset isi elemen
+
+    groupedData.forEach(areaGroup => {
+        // Membuat elemen untuk setiap wilayah
+        const areaHeader = document.createElement('div');
+        areaHeader.className = 'area-header';
+
+        // Menampilkan nama wilayah sesuai dengan data
+        areaHeader.innerHTML = '${areaGroup.area} (${areaGroup.days.length})';
+
+        const areaContent = document.createElement('div');
+        areaContent.className = 'area-content';
+
+        // Menambahkan hari dan daftar pelanggan
+        areaGroup.days.forEach(dayGroup => {
+            const dayHeader = document.createElement('div');
+            dayHeader.className = 'day-header';
+            dayHeader.innerHTML = '${dayGroup.day} (${dayGroup.customers.length})';
+
+            const customerList = document.createElement('div');
+            customerList.className = 'customer-list';
+
+            // Menambahkan item pelanggan
+            dayGroup.customers.forEach(customer => {
+                const customerItem = document.createElement('div');
+                customerItem.className = 'customer-item';
+                customerItem.textContent = customer.name;
+
+                // Set tindakan klik untuk melihat detail pelanggan tanpa menambah marker lagi
+                customerItem.onclick = () => {
+                    map.setView([customer.lat, customer.lng], 16); // Set zoom peta ke lokasi pelanggan
+                    const popup = L.popup()
+                        .setLatLng([customer.lat, customer.lng])
+                        .setContent(customer.desc) // Menampilkan deskripsi pelanggan
+                        .openOn(map);
+                };
+
+                customerList.appendChild(customerItem);
+            });
+
+            areaContent.appendChild(dayHeader);
+            areaContent.appendChild(customerList);
+        });
+
+        // Menambahkan klik untuk membuka/tutup daftar area
+        areaHeader.onclick = () => {
+            areaContent.classList.toggle('active');
+        };
+
+        areaList.appendChild(areaHeader);
+        areaList.appendChild(areaContent);
+    });
+}
+
+        // Setup autocomplete
+        function setupAutocomplete() {
+        const searchInput = document.getElementById('searchInput');
+        const autocompleteList = document.getElementById('autocompleteList');
+        const showAllBtn = document.getElementById('showAllBtn');
+        
+        function showAllCustomers() {
+            autocompleteList.innerHTML = '';
+            autocompleteList.style.display = 'block';
+            
+            customerData.forEach(customer => {
+                const name = customer.desc.match(/<b>(.*?)<\/b>/)[1];
+                const div = document.createElement('div');
+                div.textContent = name;
+                div.addEventListener('click', () => {
+                    searchInput.value = name;
+                    autocompleteList.style.display = 'none';
+                    map.setView([customer.lat, customer.lng], 16);
+                    markersList.forEach(marker => {
+                        if (marker.getLatLng().lat === customer.lat && 
+                            marker.getLatLng().lng === customer.lng) {
+                            marker.openPopup();
+                        }
+                    });
+                });
+                autocompleteList.appendChild(div);
+            });
+        }
+
+        showAllBtn.addEventListener('click', showAllCustomers);
+        
+        searchInput.addEventListener('input', function(e) {
+            const value = this.value.toLowerCase();
+            autocompleteList.innerHTML = '';
+            
+            if (!value) {
+                showAllCustomers(); // Tampilkan semua ketika input kosong
+                return;
+            }
+
+            const matches = customerData.filter(customer => 
+                customer.desc.toLowerCase().includes(value)
+            );
+
+            if (matches.length > 0) {
+                autocompleteList.style.display = 'block';
+                matches.forEach(customer => {
+                    const name = customer.desc.match(/<b>(.*?)<\/b>/)[1];
+                    const div = document.createElement('div');
+                    div.textContent = name;
+                    div.addEventListener('click', () => {
+                        searchInput.value = name;
+                        autocompleteList.style.display = 'none';
+                        map.setView([customer.lat, customer.lng], 16);
+                        markersList.forEach(marker => {
+                            if (marker.getLatLng().lat === customer.lat && 
+                                marker.getLatLng().lng === customer.lng) {
+                                marker.openPopup();
+                            }
+                        });
+                    });
+                    autocompleteList.appendChild(div);
+                });
+            } else {
+                autocompleteList.style.display = 'none';
+            }
+        });
+
+        // Tutup autocomplete saat klik di luar
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !showAllBtn.contains(e.target)) {
+                autocompleteList.style.display = 'none';
+            }
+        });
+    }
+
+        // Event listener untuk filter status
+        document.getElementById('statusFilter').addEventListener('change', function(e) {
+            const status = e.target.value;
+            
+            markersList.forEach((marker, index) => {
+                const customer = customerData[index];
+                if (status === 'all' || 
+                    (status === 'active' && !customer.desc.includes('Tidak Aktif')) ||
+                    (status === 'inactive' && customer.desc.includes('Tidak Aktif'))) {
+                    markers.addLayer(marker);
+                } else {
+                    markers.removeLayer(marker);
+                }
+            });
+        });
+
+
+        
+        // Event handler untuk zoom
+        map.on('zoom', function() {
+            const zoomLevel = map.getZoom();
+            let newSize = zoomLevel >= 13 ? 18 : zoomLevel >= 10 ? 15 : 10;
+
+            markersList.forEach((marker, index) => {
+                const isActive = !customerData[index].desc.includes('Tidak Aktif');
+                const color = isActive ? '#2ecc71' : '#e74c3c';
+                marker.setIcon(createCircleIcon(newSize, color));
+            });
+        });
+
+        // Inisialisasi
+        renderCustomerMenu();
+        setupAutocomplete();
+        map.fire('zoom');
+    </script>
+</body>
+</html>

@@ -357,7 +357,7 @@ h3.my-profession {
   width: 80px;
   border-bottom: 10px solid var(--skin-color);
   border-left: 10px solid var(--skin-color);
-  left: -37px;
+  left: 43px;
   bottom: -5px;
 }
 .home-imgs::before {
@@ -367,7 +367,7 @@ h3.my-profession {
   width: 80px;
   border-top: 10px solid var(--skin-color);
   border-right: 10px solid var(--skin-color);
-  right: -241px;
+  right: -189px;
   top: -11px;
 }
 
@@ -384,7 +384,7 @@ h3.my-profession {
   width: 80px;
   border-bottom: 10px solid var(--skin-color);
   border-right: 10px solid var(--skin-color);
-  right: -10px;
+  right: 43px;
   bottom: -5px;
 }
 .home-img.padd-15::before {
@@ -394,11 +394,11 @@ h3.my-profession {
   width: 80px;
   border-top: 10px solid var(--skin-color);
   border-left: 10px solid var(--skin-color);
-  left: -21px;
+  left: 58px;
   top: -11px;
 }
 .home .home-img img {
-  margin-left: -40px ;
+  margin-left: 40px ;
   border-radius: 5px;
   height: 400px;
   width: auto;
